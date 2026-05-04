@@ -65,9 +65,15 @@ class BookingController extends Controller
             return response()->json(['message' => 'Booking cannot be cancelled in its current state.'], 400);
         }
 
-        DB::transaction(function () use ($booking) {
-            $booking->status = 'cancelled';
-            $booking->save();
+        $data = $request->validate([
+            'cancellation_reason' => 'nullable|string|max:500',
+        ]);
+
+        DB::transaction(function () use ($booking, $data) {
+            $booking->update([
+                'status'              => 'cancelled',
+                'cancellation_reason' => $data['cancellation_reason'] ?? null,
+            ]);
 
             $vehicle = $booking->vehicle()->lockForUpdate()->first();
             if ($vehicle) {
@@ -78,6 +84,6 @@ class BookingController extends Controller
             $booking->transportRequest()->update(['status' => 'open']);
         });
 
-        return response()->json(['message' => 'Booking cancelled successfully', 'booking' => $booking]);
+        return response()->json(['message' => 'Booking cancelled successfully', 'booking' => $booking->fresh()]);
     }
 }

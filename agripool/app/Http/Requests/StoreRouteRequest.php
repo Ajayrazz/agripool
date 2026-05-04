@@ -17,7 +17,6 @@ class StoreRouteRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'vehicle_id' => 'required|exists:vehicles,id',
             'origin' => 'required|string|max:255',
             'destination' => 'required|string|max:255',
             'origin_lat' => 'required|numeric',

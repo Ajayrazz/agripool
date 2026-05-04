@@ -2,37 +2,62 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
-import LoginPage from './pages/LoginPage';
+import Navbar from './components/Navbar';
+
+// Public pages
+import LoginPage    from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+
+// Shared
 import Dashboard from './pages/Dashboard';
-import MyRequestsPage from './pages/farmer/MyRequestsPage';
-import NewRequestPage from './pages/farmer/NewRequestPage';
+
+// Farmer pages
+import MyRequestsPage    from './pages/farmer/MyRequestsPage';
+import NewRequestPage    from './pages/farmer/NewRequestPage';
 import RequestDetailPage from './pages/farmer/RequestDetailPage';
-import MatchResultsPage from './pages/farmer/MatchResultsPage';
-import MyFleetPage from './pages/transporter/MyFleetPage';
-import AddVehiclePage from './pages/transporter/AddVehiclePage';
-import ScheduleRoutePage from './pages/transporter/ScheduleRoutePage';
+import MatchResultsPage  from './pages/farmer/MatchResultsPage';
+import MyBookingsPage    from './pages/farmer/MyBookingsPage';
+import BookingDetailPage from './pages/farmer/BookingDetailPage';
+
+// Transporter pages
+import MyFleetPage          from './pages/transporter/MyFleetPage';
+import AddVehiclePage       from './pages/transporter/AddVehiclePage';
+import ScheduleRoutePage    from './pages/transporter/ScheduleRoutePage';
 import IncomingBookingsPage from './pages/transporter/IncomingBookingsPage';
+
+/* ── Layout that wraps all protected pages with the Navbar ── */
+const AppLayout = () => (
+  <>
+    <Navbar />
+    <ProtectedRoute />
+  </>
+);
 
 function App() {
   return (
     <AuthProvider>
       <Router>
         <Routes>
-          <Route path="/login" element={<LoginPage />} />
+          {/* Public */}
+          <Route path="/login"    element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route element={<ProtectedRoute />}>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/farmer/requests" element={<MyRequestsPage />} />
-            <Route path="/farmer/requests/new" element={<NewRequestPage />} />
-            <Route path="/farmer/requests/:id" element={<RequestDetailPage />} />
-            <Route path="/farmer/requests/:id/matches" element={<MatchResultsPage />} />
 
-            <Route path="/transporter/fleet" element={<MyFleetPage />} />
-            <Route path="/transporter/fleet/new" element={<AddVehiclePage />} />
-            <Route path="/transporter/fleet/:vehicleId/routes/new" element={<ScheduleRoutePage />} />
-            <Route path="/transporter/bookings" element={<IncomingBookingsPage />} />
+          {/* Protected — wrapped in Navbar */}
+          <Route element={<AppLayout />}>
+            <Route path="/"                                         element={<Dashboard />} />
+            <Route path="/farmer/requests"                          element={<MyRequestsPage />} />
+            <Route path="/farmer/requests/new"                      element={<NewRequestPage />} />
+            <Route path="/farmer/requests/:id"                      element={<RequestDetailPage />} />
+            <Route path="/farmer/requests/:id/matches"              element={<MatchResultsPage />} />
+            <Route path="/farmer/bookings-list"                     element={<MyBookingsPage />} />
+            <Route path="/farmer/bookings/:id"                      element={<BookingDetailPage />} />
+
+            <Route path="/transporter/fleet"                        element={<MyFleetPage />} />
+            <Route path="/transporter/fleet/new"                    element={<AddVehiclePage />} />
+            <Route path="/transporter/fleet/:vehicleId/routes/new"  element={<ScheduleRoutePage />} />
+            <Route path="/transporter/bookings"                     element={<IncomingBookingsPage />} />
           </Route>
+
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>

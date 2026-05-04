@@ -19,9 +19,8 @@ class RouteController extends Controller
         return response()->json($routes);
     }
 
-    public function store(StoreRouteRequest $request)
+    public function store(StoreRouteRequest $request, Vehicle $vehicle)
     {
-        $vehicle = Vehicle::findOrFail($request->vehicle_id);
 
         if ($vehicle->user_id !== $request->user()->id) {
             return response()->json(['message' => 'Unauthorized access to this vehicle.'], 403);
