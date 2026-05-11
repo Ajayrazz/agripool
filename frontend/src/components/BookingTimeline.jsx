@@ -15,16 +15,40 @@ const getMeta = (status) =>
 /**
  * BookingTimeline — takes an array of tracking_update objects and renders a
  * vertical timeline with per-status icons, colours, notes, and timestamps.
+ * Shows all steps in the normal progression. Unreached steps are greyed out.
  *
  * @param {Array} updates  — array of tracking_update objects
  */
 const BookingTimeline = ({ updates = [] }) => {
-  if (updates.length === 0) {
+  const isCancelled = updates.some(u => u.status === 'cancelled');
+  const baseProgression = ['pending', 'confirmed', 'in_transit', 'delivered', 'completed'];
+
+  let timelineItems = [];
+
+  if (isCancelled) {
+    // If cancelled, just show the literal history of what happened.
+    timelineItems = updates.map(u => ({ ...u, isReached: true }));
+  } else {
+    // Show full 5-step progression
+    timelineItems = baseProgression.map(status => {
+      const update = updates.find(u => u.status === status);
+      return {
+        id: update?.id || status,
+        status: status,
+        notes: update?.notes,
+        recorded_at: update?.recorded_at,
+        current_lat: update?.current_lat,
+        current_lng: update?.current_lng,
+        isReached: !!update
+      };
+    });
+  }
+
+  if (timelineItems.length === 0) {
     return (
       <div className="flex flex-col items-center py-10 text-gray-400 gap-2">
         <span className="text-4xl">📭</span>
         <p className="text-sm font-medium">No tracking updates yet.</p>
-        <p className="text-xs">Updates will appear here as your shipment progresses.</p>
       </div>
     );
   }
@@ -34,44 +58,50 @@ const BookingTimeline = ({ updates = [] }) => {
       {/* Vertical connector line */}
       <div className="absolute left-5 top-5 bottom-5 w-0.5 bg-gray-200" />
 
-      {updates.map((update, index) => {
-        const meta = getMeta(update.status);
-        const isLast = index === updates.length - 1;
+      {timelineItems.map((item, index) => {
+        const meta = getMeta(item.status);
+        const isLast = index === timelineItems.length - 1;
+
+        // Apply muted styles if the step hasn't been reached
+        const colorClass = item.isReached ? meta.color : 'border-gray-300';
+        const bgClass    = item.isReached ? meta.bg : 'bg-gray-100';
+        const textClass  = item.isReached ? meta.text : 'text-gray-400';
+        const iconStyle  = item.isReached ? '' : 'grayscale opacity-50';
 
         return (
           <li
-            key={update.id ?? index}
+            key={item.id}
             className={`relative flex gap-4 ${isLast ? '' : 'pb-8'}`}
           >
             {/* Icon dot */}
             <div
-              className={`relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 ${meta.color} ${meta.bg} text-base shadow-sm`}
+              className={`relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 ${colorClass} ${bgClass} text-base shadow-sm ${iconStyle}`}
             >
               {meta.icon}
             </div>
 
             {/* Content */}
-            <div className="flex-1 min-w-0 pt-1">
-              <p className={`font-semibold text-sm ${meta.text}`}>
+            <div className={`flex-1 min-w-0 pt-2 ${item.isReached ? '' : 'opacity-60'}`}>
+              <p className={`font-semibold text-sm ${textClass}`}>
                 {meta.label}
               </p>
-              {update.notes && (
-                <p className="mt-0.5 text-sm text-gray-600">{update.notes}</p>
+              {item.notes && (
+                <p className="mt-0.5 text-sm text-gray-600">{item.notes}</p>
               )}
-              <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-gray-400">
-                {update.recorded_at && (
+              {item.isReached && item.recorded_at && (
+                <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-gray-400">
                   <span>
-                    🕐 {new Date(update.recorded_at).toLocaleString('en-IN', {
+                    🕐 {new Date(item.recorded_at).toLocaleString('en-IN', {
                       dateStyle: 'medium', timeStyle: 'short',
                     })}
                   </span>
-                )}
-                {update.current_lat && update.current_lng && (
-                  <span>
-                    📍 {Number(update.current_lat).toFixed(4)}, {Number(update.current_lng).toFixed(4)}
-                  </span>
-                )}
-              </div>
+                  {item.current_lat && item.current_lng && (
+                    <span>
+                      📍 {Number(item.current_lat).toFixed(4)}, {Number(item.current_lng).toFixed(4)}
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           </li>
         );
@@ -81,3 +111,4 @@ const BookingTimeline = ({ updates = [] }) => {
 };
 
 export default BookingTimeline;
+

@@ -10,6 +10,10 @@ const IncomingBookingsPage = () => {
   const [filter, setFilter]     = useState('all');
   const [error, setError]       = useState('');
   const [actionId, setActionId] = useState(null);
+  
+  // Delivery form states
+  const [deliveryFormId, setDeliveryFormId] = useState(null);
+  const [deliveryNote, setDeliveryNote] = useState('');
 
   useEffect(() => { fetchBookings(); }, []);
 
@@ -28,9 +32,32 @@ const IncomingBookingsPage = () => {
     setActionId(id);
     try {
       await api.patch(`/transporter/bookings/${id}/status`, { action });
-      fetchBookings();
+      // Update local state instead of full reload to prevent UI jumping
+      setBookings(prev => prev.map(b => 
+        b.id === id 
+          ? { ...b, status: action === 'accept' ? 'confirmed' : 'cancelled' } 
+          : b
+      ));
     } catch (err) {
       alert(err.response?.data?.message || `Failed to ${action} booking`);
+    } finally {
+      setActionId(null);
+    }
+  };
+
+  const handleTrackUpdate = async (id, status, notes = null) => {
+    setActionId(id);
+    try {
+      await api.post(`/bookings/${id}/track`, { status, notes });
+      setBookings(prev => prev.map(b => 
+        b.id === id ? { ...b, status } : b
+      ));
+      if (status === 'delivered') {
+        setDeliveryFormId(null);
+        setDeliveryNote('');
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || `Failed to update tracking to ${status}`);
     } finally {
       setActionId(null);
     }
@@ -144,6 +171,60 @@ const IncomingBookingsPage = () => {
                   >
                     {actionId === b.id ? 'Processing…' : '❌ Reject'}
                   </button>
+                </div>
+              )}
+
+              {b.status === 'confirmed' && (
+                <div className="pt-4 border-t border-gray-100">
+                  <button
+                    onClick={() => handleTrackUpdate(b.id, 'in_transit', 'Shipment has departed.')}
+                    disabled={actionId === b.id}
+                    className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  >
+                    {actionId === b.id ? 'Updating…' : '🚛 Mark as In Transit'}
+                  </button>
+                </div>
+              )}
+
+              {b.status === 'in_transit' && (
+                <div className="pt-4 border-t border-gray-100">
+                  {deliveryFormId === b.id ? (
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">
+                        Delivery notes (optional)
+                      </label>
+                      <textarea
+                        value={deliveryNote}
+                        onChange={(e) => setDeliveryNote(e.target.value)}
+                        className="form-input text-sm min-h-[80px] mb-3"
+                        placeholder="e.g. Delivered to warehouse manager."
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleTrackUpdate(b.id, 'delivered', deliveryNote)}
+                          disabled={actionId === b.id}
+                          className="btn-primary text-sm"
+                        >
+                          {actionId === b.id ? 'Confirming…' : 'Confirm Delivery'}
+                        </button>
+                        <button
+                          onClick={() => setDeliveryFormId(null)}
+                          disabled={actionId === b.id}
+                          className="btn-secondary text-sm"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setDeliveryFormId(b.id)}
+                      disabled={actionId === b.id}
+                      className="w-full sm:w-auto px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors disabled:opacity-50"
+                    >
+                      ✅ Mark as Delivered
+                    </button>
+                  )}
                 </div>
               )}
             </div>

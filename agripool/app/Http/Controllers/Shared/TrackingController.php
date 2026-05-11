@@ -41,7 +41,7 @@ class TrackingController extends Controller
         // 2. Validate input
         $data = $request->validate([
             'status'      => 'required|in:pending,confirmed,in_transit,delivered,completed',
-            'notes'       => 'nullable|string|max:500',
+            'notes'       => 'nullable|string|max:255',
             'current_lat' => 'nullable|numeric|between:-90,90',
             'current_lng' => 'nullable|numeric|between:-180,180',
         ]);
@@ -69,6 +69,9 @@ class TrackingController extends Controller
 
         // 5. Update booking status to match
         $booking->update(['status' => $newStatus]);
+        if ($newStatus === 'delivered') {
+            $booking->transportRequest()->update(['status' => 'completed']);
+        }
 
         // 6. Notify the farmer about the status change
         $farmer = $booking->farmer;
