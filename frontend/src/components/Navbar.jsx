@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../api';
 
@@ -194,6 +194,7 @@ const NotificationBell = () => {
 const Navbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const links = roleLinks[user?.role] ?? [];
@@ -218,31 +219,40 @@ const Navbar = () => {
         </Link>
 
         {/* Desktop nav links */}
-        <nav className="hidden md:flex items-center gap-1">
-          {links.map(link => (
-            <Link
-              key={link.to}
-              to={link.to}
-              className="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-green-50 hover:text-green-700 transition-colors"
-            >
-              {link.label}
-            </Link>
-          ))}
+        <nav className="hidden md:flex items-center gap-2">
+          {links.map(link => {
+            const isActive = location.pathname.startsWith(link.to);
+            return (
+              <Link
+                key={link.to}
+                to={link.to}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  isActive 
+                    ? 'bg-green-50 text-green-700' 
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                }`}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
         </nav>
 
         {/* Desktop: notification bell + user + logout */}
-        <div className="hidden md:flex items-center gap-3 shrink-0">
+        <div className="hidden md:flex items-center gap-4 shrink-0">
           <NotificationBell />
 
           {user && (
-            <div className="text-right">
-              <p className="text-sm font-semibold text-gray-800 leading-none">{user.name}</p>
-              <p className="text-xs text-green-600 capitalize mt-0.5">{user.role}</p>
+            <div className="flex items-center gap-3 border-l border-gray-200 pl-4">
+              <div className="text-right">
+                <p className="text-sm font-semibold text-gray-800 leading-none">{user.name}</p>
+                <p className="text-xs text-green-600 capitalize mt-1">{user.role}</p>
+              </div>
             </div>
           )}
           <button
             onClick={handleLogout}
-            className="px-4 py-2 text-sm font-semibold text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
+            className="ml-2 px-4 py-2 text-sm font-semibold text-gray-600 hover:text-red-600 hover:bg-red-50 border border-gray-200 hover:border-red-200 rounded-lg transition-colors"
           >
             Logout
           </button>
@@ -283,16 +293,23 @@ const Navbar = () => {
               </div>
             </div>
           )}
-          {links.map(link => (
-            <Link
-              key={link.to}
-              to={link.to}
-              onClick={() => setMenuOpen(false)}
-              className="px-4 py-3 rounded-xl text-sm font-medium text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors"
-            >
-              {link.label}
-            </Link>
-          ))}
+          {links.map(link => {
+            const isActive = location.pathname.startsWith(link.to);
+            return (
+              <Link
+                key={link.to}
+                to={link.to}
+                onClick={() => setMenuOpen(false)}
+                className={`px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
+                  isActive 
+                    ? 'bg-green-50 text-green-700' 
+                    : 'text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
           <button
             onClick={() => { setMenuOpen(false); handleLogout(); }}
             className="mt-2 px-4 py-3 text-sm font-semibold text-red-600 rounded-xl hover:bg-red-50 text-left transition-colors"

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import api from '../../api';
 
 const ScheduleRoutePage = () => {
@@ -19,6 +19,7 @@ const ScheduleRoutePage = () => {
     const [globalError, setGlobalError] = useState(null);
     const [successMsg, setSuccessMsg] = useState(null);
     const [geocodingStatus, setGeocodingStatus] = useState({ origin: '', destination: '' });
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const navigate = useNavigate();
 
     const handleChange = (e) => {
@@ -53,6 +54,7 @@ const ScheduleRoutePage = () => {
         e.preventDefault();
         setErrors({});
         setGlobalError(null);
+        setIsSubmitting(true);
         try {
             await api.post(`/transporter/vehicles/${vehicleId}/routes`, formData);
             setSuccessMsg('Route scheduled successfully!');
@@ -63,69 +65,132 @@ const ScheduleRoutePage = () => {
             } else {
                 setGlobalError(err.response?.data?.message || 'Failed to schedule route');
             }
+            setIsSubmitting(false);
         }
     };
 
     return (
-        <div style={{ padding: '20px', maxWidth: '600px', margin: '0 auto' }}>
-            <h2>Schedule Route</h2>
-            {globalError && <div style={{ color: 'red', marginBottom: '10px', padding: '10px', background: '#ffe6e6', borderRadius: '4px' }}>{globalError}</div>}
-            {successMsg && <div style={{ color: 'green', marginBottom: '10px', padding: '10px', background: '#e6ffe6', borderRadius: '4px' }}>{successMsg}</div>}
-            
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <div>
-                    <label>Origin:</label>
-                    <input 
-                        type="text" 
-                        name="origin" 
-                        value={formData.origin} 
-                        onChange={handleChange} 
-                        onBlur={(e) => handleGeocode('origin', e.target.value)}
-                        required 
-                        style={{ width: '100%', padding: '8px', borderColor: errors.origin ? 'red' : '#ccc' }} 
-                    />
-                    <small style={{ color: 'grey', display: 'block', marginTop: '4px' }}>{geocodingStatus.origin}</small>
-                    {errors.origin && <small style={{ color: 'red' }}>{errors.origin[0]}</small>}
-                </div>
-                <div>
-                    <label>Destination:</label>
-                    <input 
-                        type="text" 
-                        name="destination" 
-                        value={formData.destination} 
-                        onChange={handleChange} 
-                        onBlur={(e) => handleGeocode('destination', e.target.value)}
-                        required 
-                        style={{ width: '100%', padding: '8px', borderColor: errors.destination ? 'red' : '#ccc' }} 
-                    />
-                    <small style={{ color: 'grey', display: 'block', marginTop: '4px' }}>{geocodingStatus.destination}</small>
-                    {errors.destination && <small style={{ color: 'red' }}>{errors.destination[0]}</small>}
-                </div>
-                
-                {/* Hidden Coordinate Inputs */}
-                <input type="hidden" name="origin_lat" value={formData.origin_lat} />
-                <input type="hidden" name="origin_lng" value={formData.origin_lng} />
-                <input type="hidden" name="dest_lat" value={formData.dest_lat} />
-                <input type="hidden" name="dest_lng" value={formData.dest_lng} />
+        <main className="page-container" style={{ maxWidth: '700px' }}>
+            <div className="mb-6">
+                <Link to="/transporter/fleet" className="text-sm text-green-600 hover:underline mb-2 inline-block">
+                    &larr; Back to Fleet Details
+                </Link>
+                <h1 className="text-2xl font-bold text-gray-900">Schedule New Route</h1>
+                <p className="text-sm text-gray-500 mt-1">Create a transport route for farmers to book available capacity.</p>
+            </div>
 
-                <div>
-                    <label>Departure Date:</label>
-                    <input type="date" name="departure_date" value={formData.departure_date} onChange={handleChange} required style={{ width: '100%', padding: '8px', borderColor: errors.departure_date ? 'red' : '#ccc' }} />
-                    {errors.departure_date && <small style={{ color: 'red', display: 'block' }}>{errors.departure_date[0]}</small>}
-                </div>
-                <div>
-                    <label>Departure Time:</label>
-                    <input type="time" name="departure_time" value={formData.departure_time} onChange={handleChange} required style={{ width: '100%', padding: '8px', borderColor: errors.departure_time ? 'red' : '#ccc' }} />
-                    {errors.departure_time && <small style={{ color: 'red', display: 'block' }}>{errors.departure_time[0]}</small>}
-                </div>
-                <div>
-                    <label>Price per kg ($):</label>
-                    <input type="number" step="0.01" name="price_per_kg" value={formData.price_per_kg} onChange={handleChange} required style={{ width: '100%', padding: '8px', borderColor: errors.price_per_kg ? 'red' : '#ccc' }} />
-                    {errors.price_per_kg && <small style={{ color: 'red', display: 'block' }}>{errors.price_per_kg[0]}</small>}
-                </div>
-                <button type="submit" style={{ padding: '10px', background: '#28a745', color: '#fff', border: 'none', cursor: 'pointer', marginTop: '10px' }}>Schedule Route</button>
-            </form>
-        </div>
+            <div className="card">
+                {globalError && (
+                    <div className="mb-5 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                        {globalError}
+                    </div>
+                )}
+                {successMsg && (
+                    <div className="mb-5 p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700">
+                        ✅ {successMsg}
+                    </div>
+                )}
+
+                <form onSubmit={handleSubmit} className="space-y-5">
+                    <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">Origin</label>
+                        <input 
+                            type="text" 
+                            name="origin" 
+                            value={formData.origin} 
+                            onChange={handleChange} 
+                            onBlur={(e) => handleGeocode('origin', e.target.value)}
+                            placeholder="Enter origin location (e.g. Mumbai)"
+                            required 
+                            className={`form-input ${errors.origin ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
+                        />
+                        <div className="flex justify-between mt-1">
+                            <small className="text-xs text-gray-500">{geocodingStatus.origin}</small>
+                            {errors.origin && <small className="text-xs text-red-500">{errors.origin[0]}</small>}
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">Destination</label>
+                        <input 
+                            type="text" 
+                            name="destination" 
+                            value={formData.destination} 
+                            onChange={handleChange} 
+                            onBlur={(e) => handleGeocode('destination', e.target.value)}
+                            placeholder="Enter destination location (e.g. Pune)"
+                            required 
+                            className={`form-input ${errors.destination ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
+                        />
+                        <div className="flex justify-between mt-1">
+                            <small className="text-xs text-gray-500">{geocodingStatus.destination}</small>
+                            {errors.destination && <small className="text-xs text-red-500">{errors.destination[0]}</small>}
+                        </div>
+                    </div>
+                    
+                    {/* Hidden Coordinate Inputs */}
+                    <input type="hidden" name="origin_lat" value={formData.origin_lat} />
+                    <input type="hidden" name="origin_lng" value={formData.origin_lng} />
+                    <input type="hidden" name="dest_lat" value={formData.dest_lat} />
+                    <input type="hidden" name="dest_lng" value={formData.dest_lng} />
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-1">Departure Date</label>
+                            <input 
+                                type="date" 
+                                name="departure_date" 
+                                value={formData.departure_date} 
+                                onChange={handleChange} 
+                                required 
+                                className={`form-input ${errors.departure_date ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
+                            />
+                            {errors.departure_date && <small className="text-xs text-red-500 mt-1 block">{errors.departure_date[0]}</small>}
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-1">Departure Time</label>
+                            <input 
+                                type="time" 
+                                name="departure_time" 
+                                value={formData.departure_time} 
+                                onChange={handleChange} 
+                                required 
+                                className={`form-input ${errors.departure_time ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
+                            />
+                            {errors.departure_time && <small className="text-xs text-red-500 mt-1 block">{errors.departure_time[0]}</small>}
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">Price per kg (₹)</label>
+                        <input 
+                            type="number" 
+                            step="0.01" 
+                            name="price_per_kg" 
+                            value={formData.price_per_kg} 
+                            onChange={handleChange} 
+                            placeholder="Enter price (e.g. 15.50)"
+                            required 
+                            className={`form-input ${errors.price_per_kg ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
+                        />
+                        {errors.price_per_kg && <small className="text-xs text-red-500 mt-1 block">{errors.price_per_kg[0]}</small>}
+                    </div>
+
+                    <div className="pt-4 flex flex-col sm:flex-row gap-3">
+                        <button 
+                            type="submit" 
+                            disabled={isSubmitting}
+                            className="btn-primary w-full sm:w-auto justify-center"
+                        >
+                            {isSubmitting ? 'Scheduling...' : 'Schedule Route'}
+                        </button>
+                        <Link to="/transporter/fleet" className="btn-secondary w-full sm:w-auto justify-center">
+                            Cancel
+                        </Link>
+                    </div>
+                </form>
+            </div>
+        </main>
     );
 };
 
