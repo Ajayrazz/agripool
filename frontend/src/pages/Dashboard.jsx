@@ -91,14 +91,14 @@ const FarmerDashboard = ({ user }) => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <CtaCard
             icon="🌾"
-            title="Post a New Request"
+            title="Post Transport Request"
             description="Let transporters know you need cargo delivery."
             to="/farmer/requests/new"
             linkLabel="+ Post Request"
           />
           <CtaCard
             icon="🔍"
-            title="View My Requests"
+            title="Find Transport"
             description="Track the status of all your transport requests."
             to="/farmer/requests"
             linkLabel="View Requests"

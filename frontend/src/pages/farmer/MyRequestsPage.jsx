@@ -99,7 +99,7 @@ const MyRequestsPage = () => {
                     to={`/farmer/requests/${req.id}/matches`}
                     className="btn-primary text-xs px-3 py-1.5"
                   >
-                    🔍 Find Transporters
+                    🔍 View Matches
                   </Link>
                 )}
               </div>

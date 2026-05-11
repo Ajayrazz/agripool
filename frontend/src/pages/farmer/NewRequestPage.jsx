@@ -12,10 +12,36 @@ const NewRequestPage = () => {
   });
   const [error, setError]   = useState(null);
   const [loading, setLoading] = useState(false);
+  const [geocodingStatus, setGeocodingStatus] = useState('');
+  const [successMsg, setSuccessMsg] = useState(null);
   const navigate = useNavigate();
 
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
+
+  const handleGeocode = async (value) => {
+    if (!value) return;
+    setGeocodingStatus('Loading...');
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(value)}&format=json&limit=1`);
+      const data = await res.json();
+      if (data && data.length > 0) {
+        const { lat, lon } = data[0];
+        const latNum = parseFloat(lat);
+        const lonNum = parseFloat(lon);
+        setFormData(prev => ({
+          ...prev,
+          pickup_lat: latNum,
+          pickup_lng: lonNum
+        }));
+        setGeocodingStatus(`Resolved: Lat ${latNum.toFixed(4)}, Lng ${lonNum.toFixed(4)}`);
+      } else {
+        setGeocodingStatus('Location not found');
+      }
+    } catch (err) {
+      setGeocodingStatus('Geocoding failed');
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,7 +49,8 @@ const NewRequestPage = () => {
     setLoading(true);
     try {
       await api.post('/requests', formData);
-      navigate('/farmer/requests');
+      setSuccessMsg('Request posted!');
+      setTimeout(() => navigate('/farmer/requests'), 1500);
     } catch (err) {
       const errors = err.response?.data?.errors;
       setError(errors ? Object.values(errors).flat().join(' ') : (err.response?.data?.message || 'Failed to create request'));
@@ -54,6 +81,12 @@ const NewRequestPage = () => {
             </div>
           )}
 
+          {successMsg && (
+            <div className="mb-5 p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700 flex gap-2">
+              ✅ {successMsg}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Route */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -63,9 +96,12 @@ const NewRequestPage = () => {
                 </label>
                 <input
                   type="text" name="pickup_location" value={formData.pickup_location}
-                  onChange={handleChange} required placeholder="e.g. Pune, Maharashtra"
+                  onChange={handleChange} 
+                  onBlur={(e) => handleGeocode(e.target.value)}
+                  required placeholder="e.g. Pune, Maharashtra"
                   className="form-input"
                 />
+                <small className="text-xs text-gray-500 mt-1 block">{geocodingStatus}</small>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -78,6 +114,9 @@ const NewRequestPage = () => {
                 />
               </div>
             </div>
+
+            <input type="hidden" name="pickup_lat" value={formData.pickup_lat} />
+            <input type="hidden" name="pickup_lng" value={formData.pickup_lng} />
 
             {/* Cargo */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

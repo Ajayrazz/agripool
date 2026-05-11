@@ -1,0 +1,1 @@
+<?php echo App\Models\User::where('role', 'transporter')->first()->createToken('test')->plainTextToken;

@@ -19,12 +19,12 @@ class StoreRouteRequest extends FormRequest
         return [
             'origin' => 'required|string|max:255',
             'destination' => 'required|string|max:255',
-            'origin_lat' => 'required|numeric',
-            'origin_lng' => 'required|numeric',
-            'dest_lat' => 'required|numeric',
-            'dest_lng' => 'required|numeric',
+            'origin_lat' => 'required|numeric|between:-90,90',
+            'origin_lng' => 'required|numeric|between:-180,180',
+            'dest_lat' => 'required|numeric|between:-90,90',
+            'dest_lng' => 'required|numeric|between:-180,180',
             'departure_date' => 'required|date|after_or_equal:today',
-            'departure_time' => 'required|date_format:H:i',
+            'departure_time' => 'required',
             'price_per_kg' => 'required|numeric|min:0.01',
         ];
     }

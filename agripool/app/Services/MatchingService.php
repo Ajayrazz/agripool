@@ -10,7 +10,7 @@ class MatchingService
     public function findMatches(TransportRequest $request)
     {
         return VehicleRoute::with(['vehicle', 'vehicle.user'])
-            ->where('destination', $request->destination)
+            ->whereRaw('LOWER(destination) = ?', [strtolower($request->destination)])
             ->where('departure_date', $request->required_date)
             ->whereHas('vehicle', function($q) use ($request) {
                 $q->where('is_available', true)

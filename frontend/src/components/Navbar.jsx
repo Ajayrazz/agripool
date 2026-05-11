@@ -6,7 +6,7 @@ import api from '../api';
 /* ─── Role nav links ─── */
 const FARMER_LINKS      = [
   { to: '/farmer/requests',    label: '🌾 My Requests'       },
-  { to: '/farmer/bookings-list', label: '📦 My Bookings'     },
+  { to: '/farmer/bookings',    label: '📦 My Bookings'       },
 ];
 const TRANSPORTER_LINKS = [
   { to: '/transporter/fleet',    label: '🚛 My Fleet'        },

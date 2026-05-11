@@ -44,18 +44,25 @@ function App() {
 
           {/* Protected — wrapped in Navbar */}
           <Route element={<AppLayout />}>
-            <Route path="/"                                         element={<Dashboard />} />
-            <Route path="/farmer/requests"                          element={<MyRequestsPage />} />
-            <Route path="/farmer/requests/new"                      element={<NewRequestPage />} />
-            <Route path="/farmer/requests/:id"                      element={<RequestDetailPage />} />
-            <Route path="/farmer/requests/:id/matches"              element={<MatchResultsPage />} />
-            <Route path="/farmer/bookings-list"                     element={<MyBookingsPage />} />
-            <Route path="/farmer/bookings/:id"                      element={<BookingDetailPage />} />
+            <Route path="/" element={<Dashboard />} />
 
-            <Route path="/transporter/fleet"                        element={<MyFleetPage />} />
-            <Route path="/transporter/fleet/new"                    element={<AddVehiclePage />} />
-            <Route path="/transporter/fleet/:vehicleId/routes/new"  element={<ScheduleRoutePage />} />
-            <Route path="/transporter/bookings"                     element={<IncomingBookingsPage />} />
+            {/* Farmer Routes */}
+            <Route element={<ProtectedRoute allowedRoles={['farmer']} />}>
+              <Route path="/farmer/requests"                          element={<MyRequestsPage />} />
+              <Route path="/farmer/requests/new"                      element={<NewRequestPage />} />
+              <Route path="/farmer/requests/:id"                      element={<RequestDetailPage />} />
+              <Route path="/farmer/requests/:id/matches"              element={<MatchResultsPage />} />
+              <Route path="/farmer/bookings"                          element={<MyBookingsPage />} />
+              <Route path="/farmer/bookings/:id"                      element={<BookingDetailPage />} />
+            </Route>
+
+            {/* Transporter Routes */}
+            <Route element={<ProtectedRoute allowedRoles={['transporter']} />}>
+              <Route path="/transporter/fleet"                        element={<MyFleetPage />} />
+              <Route path="/transporter/fleet/new"                    element={<AddVehiclePage />} />
+              <Route path="/transporter/fleet/:vehicleId/routes/new"  element={<ScheduleRoutePage />} />
+              <Route path="/transporter/bookings"                     element={<IncomingBookingsPage />} />
+            </Route>
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />
