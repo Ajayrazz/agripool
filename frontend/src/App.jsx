@@ -25,6 +25,13 @@ import AddVehiclePage       from './pages/transporter/AddVehiclePage';
 import ScheduleRoutePage    from './pages/transporter/ScheduleRoutePage';
 import IncomingBookingsPage from './pages/transporter/IncomingBookingsPage';
 
+// Admin pages
+import AdminLayout        from './components/AdminLayout';
+import AdminDashboardPage from './pages/admin/AdminDashboardPage';
+import AdminUsersPage     from './pages/admin/AdminUsersPage';
+import AdminBookingsPage  from './pages/admin/AdminBookingsPage';
+import AdminDisputesPage  from './pages/admin/AdminDisputesPage';
+
 /* ── Layout that wraps all protected pages with the Navbar ── */
 const AppLayout = () => (
   <>
@@ -41,6 +48,16 @@ function App() {
           {/* Public */}
           <Route path="/login"    element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+
+          {/* Admin Routes — wrapped in AdminLayout */}
+          <Route element={<AdminLayout />}>
+            <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+              <Route path="/admin"          element={<AdminDashboardPage />} />
+              <Route path="/admin/users"    element={<AdminUsersPage />} />
+              <Route path="/admin/bookings" element={<AdminBookingsPage />} />
+              <Route path="/admin/disputes" element={<AdminDisputesPage />} />
+            </Route>
+          </Route>
 
           {/* Protected — wrapped in Navbar */}
           <Route element={<AppLayout />}>

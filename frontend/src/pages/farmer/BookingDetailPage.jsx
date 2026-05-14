@@ -179,6 +179,45 @@ const BookingDetailPage = () => {
           </div>
         </div>
 
+        {/* ── Payment Status Section ── */}
+        <div className="card">
+          <h2 className="text-base font-bold text-gray-800 mb-4">💳 Payment Status</h2>
+          {booking.payment ? (
+            <div className="space-y-3 text-sm">
+              <div className="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
+                <span className="text-gray-500">Status</span>
+                <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                  booking.payment.status === 'paid' ? 'bg-green-100 text-green-700' :
+                  booking.payment.status === 'failed' ? 'bg-red-100 text-red-700' :
+                  'bg-yellow-100 text-yellow-700'
+                }`}>
+                  {booking.payment.status.toUpperCase()}
+                </span>
+              </div>
+              <div className="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
+                <span className="text-gray-500">Amount</span>
+                <span className="font-semibold text-gray-800">₹{Number(booking.payment.amount).toFixed(2)}</span>
+              </div>
+              {booking.payment.status === 'paid' && (
+                <>
+                  <div className="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
+                    <span className="text-gray-500">Payment ID</span>
+                    <span className="font-mono text-xs text-gray-600">{booking.payment.razorpay_payment_id}</span>
+                  </div>
+                  <div className="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
+                    <span className="text-gray-500">Paid At</span>
+                    <span className="text-gray-800">{new Date(booking.payment.paid_at).toLocaleString()}</span>
+                  </div>
+                </>
+              )}
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500 text-center py-4 bg-gray-50 rounded-lg">
+              No payment record found for this booking.
+            </div>
+          )}
+        </div>
+
         {/* ── Timeline card ── */}
         <div className="card">
           <h2 className="text-base font-bold text-gray-800 mb-5">📍 Tracking Timeline</h2>

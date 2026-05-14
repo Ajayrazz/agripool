@@ -17,6 +17,7 @@ class Booking extends Model
         'total_cost',
         'status',
         'cancellation_reason',
+        'dispute_resolution',
     ];
 
     public function farmer()
@@ -42,5 +43,10 @@ class Booking extends Model
     public function notifications()
     {
         return $this->hasMany(Notification::class);
+    }
+
+    public function payment()
+    {
+        return $this->hasOne(Payment::class);
     }
 }

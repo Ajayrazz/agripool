@@ -50,7 +50,7 @@ class BookingController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
         
-        $booking->load(['vehicle', 'vehicle.user', 'transportRequest', 'trackingUpdates']);
+        $booking->load(['vehicle', 'vehicle.user', 'transportRequest', 'trackingUpdates', 'payment']);
         
         return response()->json($booking);
     }

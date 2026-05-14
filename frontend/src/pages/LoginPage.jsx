@@ -17,8 +17,12 @@ const LoginPage = () => {
     setError('');
     setLoading(true);
     try {
-      await login(credentials);
-      navigate('/');
+      const user = await login(credentials);
+      if (user.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed. Check your credentials.');
     } finally {
