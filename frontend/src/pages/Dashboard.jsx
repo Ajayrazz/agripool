@@ -2,47 +2,41 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../api';
+import StatCard from '../components/ui/StatCard';
 
-/* ─── Stat card ─── */
-const StatCard = ({ icon, label, value, loading }) => (
-  <div className="card flex items-center gap-5">
-    <div className="w-14 h-14 rounded-xl bg-green-50 border border-green-100 flex items-center justify-center text-2xl shrink-0">
-      {icon}
-    </div>
-    <div>
-      <p className="text-sm text-gray-500 font-medium">{label}</p>
-      {loading ? (
-        <div className="h-7 w-16 mt-1 bg-gray-100 animate-pulse rounded" />
-      ) : (
-        <p className="text-3xl font-bold text-gray-800 leading-none mt-0.5">{value}</p>
-      )}
-    </div>
-  </div>
+/* ─── Skeleton ─── */
+const Skeleton = ({ className = '' }) => (
+  <div className={`bg-gray-200 animate-pulse rounded-xl ${className}`} />
 );
 
-/* ─── CTA Card ─── */
-const CtaCard = ({ icon, title, description, to, linkLabel }) => (
-  <div className="card bg-gradient-to-br from-green-50 to-earth-50 border-green-100 flex flex-col gap-3">
-    <div className="text-3xl">{icon}</div>
-    <div>
-      <h3 className="text-base font-bold text-gray-800">{title}</h3>
-      <p className="text-sm text-gray-500 mt-0.5">{description}</p>
+/* ─── Quick Action Card ─── */
+const QuickCard = ({ icon, iconBg, title, desc, to, linkLabel, linkColor = 'green' }) => (
+  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 hover:shadow-md transition-all flex flex-col gap-3">
+    <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${iconBg}`}>
+      {icon}
     </div>
-    <Link to={to} className="btn-primary self-start mt-auto text-sm">
+    <div className="flex-1">
+      <h3 className="text-base font-bold text-gray-900">{title}</h3>
+      <p className="text-sm text-gray-500 mt-0.5">{desc}</p>
+    </div>
+    <Link
+      to={to}
+      className={`self-start mt-auto inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+        linkColor === 'blue'
+          ? 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+          : 'bg-green-600 text-white hover:bg-green-700 hover:shadow-md'
+      }`}
+    >
       {linkLabel}
     </Link>
   </div>
-);
-
-/* ─── Loading skeleton ─── */
-const Skeleton = ({ className = '' }) => (
-  <div className={`bg-gray-100 animate-pulse rounded ${className}`} />
 );
 
 /* ═══════════════════════════════════
    Farmer Dashboard
 ═══════════════════════════════════ */
 const FarmerDashboard = ({ user }) => {
+  /* ── All state & API logic unchanged ── */
   const [stats, setStats] = useState({ openRequests: 0, activeBookings: 0 });
   const [loading, setLoading] = useState(true);
 
@@ -53,13 +47,13 @@ const FarmerDashboard = ({ user }) => {
           api.get('/requests'),
           api.get('/farmer/bookings'),
         ]);
-        const openRequests  = reqRes.data.data.filter(r => r.status === 'open').length;
+        const openRequests   = reqRes.data.data.filter(r => r.status === 'open').length;
         const activeBookings = bookRes.data.data.filter(
           b => ['pending', 'confirmed', 'in_transit'].includes(b.status)
         ).length;
         setStats({ openRequests, activeBookings });
       } catch {
-        /* silently fail — stats show 0 */
+        /* silently fail */
       } finally {
         setLoading(false);
       }
@@ -68,40 +62,54 @@ const FarmerDashboard = ({ user }) => {
   }, []);
 
   return (
-    <div className="space-y-8">
-      {/* Welcome banner */}
-      <div className="card bg-gradient-to-r from-green-700 to-green-600 text-white border-0">
-        <p className="text-green-100 text-sm font-medium">Good day,</p>
-        <h1 className="text-2xl font-bold mt-0.5">{user?.name} 👋</h1>
-        <p className="text-green-100 text-sm mt-1">Here's your farming transport overview.</p>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 py-8">
 
-      {/* Stats */}
-      <div>
-        <h2 className="text-base font-semibold text-gray-700 mb-3">Overview</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <StatCard icon="📋" label="Open Requests"   value={stats.openRequests}   loading={loading} />
-          <StatCard icon="📦" label="Active Bookings" value={stats.activeBookings} loading={loading} />
+        {/* Welcome banner */}
+        <div className="relative bg-gradient-to-r from-green-600 to-emerald-500 rounded-3xl p-8 text-white mb-8 overflow-hidden">
+          {/* Decorative circle */}
+          <div className="absolute -right-10 -top-10 w-52 h-52 rounded-full bg-white/10" />
+          <div className="absolute -right-4 top-16 w-32 h-32 rounded-full bg-white/5" />
+
+          <div className="relative z-10 flex items-center justify-between">
+            <div>
+              <p className="text-green-100 text-sm font-medium">Good day,</p>
+              <h1 className="text-2xl font-bold mt-0.5">Welcome back, {user?.name} 👋</h1>
+              <p className="text-green-100 text-sm mt-1">Manage your transport requests and bookings.</p>
+            </div>
+            <span className="text-7xl opacity-30 hidden sm:block">🚜</span>
+          </div>
         </div>
-      </div>
 
-      {/* CTAs */}
-      <div>
-        <h2 className="text-base font-semibold text-gray-700 mb-3">Quick Actions</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <CtaCard
+        {/* Stats row */}
+        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Overview</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <StatCard icon="🗂️" label="Open Requests"   value={stats.openRequests}   color="green"  loading={loading} />
+          <StatCard icon="📦" label="Active Bookings" value={stats.activeBookings} color="blue"   loading={loading} />
+          <StatCard icon="✅" label="Completed Trips" value={0}                    color="green"  loading={loading} />
+          <StatCard icon="💰" label="Total Saved"     value="₹0"                  color="amber"  loading={loading} />
+        </div>
+
+        {/* Quick Actions */}
+        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Quick Actions</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <QuickCard
             icon="🌾"
+            iconBg="bg-green-50"
             title="Post Transport Request"
-            description="Let transporters know you need cargo delivery."
+            desc="Let transporters know you need cargo delivery."
             to="/farmer/requests/new"
             linkLabel="+ Post Request"
+            linkColor="green"
           />
-          <CtaCard
+          <QuickCard
             icon="🔍"
-            title="Find Transport"
-            description="Track the status of all your transport requests."
+            iconBg="bg-blue-50"
+            title="View My Requests"
+            desc="Track the status of all your transport requests."
             to="/farmer/requests"
             linkLabel="View Requests"
+            linkColor="blue"
           />
         </div>
       </div>
@@ -113,6 +121,7 @@ const FarmerDashboard = ({ user }) => {
    Transporter Dashboard
 ═══════════════════════════════════ */
 const TransporterDashboard = ({ user }) => {
+  /* ── All state & API logic unchanged ── */
   const [stats, setStats] = useState({ vehicleCount: 0, pendingBookings: 0 });
   const [loading, setLoading] = useState(true);
 
@@ -136,40 +145,50 @@ const TransporterDashboard = ({ user }) => {
   }, []);
 
   return (
-    <div className="space-y-8">
-      {/* Welcome banner */}
-      <div className="card bg-gradient-to-r from-earth-700 to-earth-600 text-white border-0">
-        <p className="text-orange-100 text-sm font-medium">Welcome back,</p>
-        <h1 className="text-2xl font-bold mt-0.5">{user?.name} 🚛</h1>
-        <p className="text-orange-100 text-sm mt-1">Manage your fleet and incoming bookings.</p>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 py-8">
 
-      {/* Stats */}
-      <div>
-        <h2 className="text-base font-semibold text-gray-700 mb-3">Fleet Overview</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <StatCard icon="🚚" label="Vehicles in Fleet"   value={stats.vehicleCount}    loading={loading} />
-          <StatCard icon="⏳" label="Pending Bookings"    value={stats.pendingBookings}  loading={loading} />
+        {/* Welcome banner */}
+        <div className="relative bg-gradient-to-r from-amber-500 to-orange-500 rounded-3xl p-8 text-white mb-8 overflow-hidden">
+          <div className="absolute -right-10 -top-10 w-52 h-52 rounded-full bg-white/10" />
+          <div className="absolute -right-4 top-16 w-32 h-32 rounded-full bg-white/5" />
+          <div className="relative z-10 flex items-center justify-between">
+            <div>
+              <p className="text-orange-100 text-sm font-medium">Welcome back,</p>
+              <h1 className="text-2xl font-bold mt-0.5">{user?.name} 🚛</h1>
+              <p className="text-orange-100 text-sm mt-1">Manage your fleet and incoming bookings.</p>
+            </div>
+            <span className="text-7xl opacity-30 hidden sm:block">🚛</span>
+          </div>
         </div>
-      </div>
 
-      {/* CTAs */}
-      <div>
-        <h2 className="text-base font-semibold text-gray-700 mb-3">Quick Actions</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <CtaCard
+        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Fleet Overview</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <StatCard icon="🚚" label="Vehicles in Fleet"  value={stats.vehicleCount}   color="amber"  loading={loading} />
+          <StatCard icon="⏳" label="Pending Bookings"   value={stats.pendingBookings} color="blue"   loading={loading} />
+          <StatCard icon="✅" label="Completed Trips"    value={0}                     color="green"  loading={loading} />
+          <StatCard icon="💰" label="Revenue"            value="₹0"                   color="purple" loading={loading} />
+        </div>
+
+        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Quick Actions</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <QuickCard
             icon="🚛"
+            iconBg="bg-amber-50"
             title="Add a Vehicle"
-            description="Register a new truck or pickup to your fleet."
+            desc="Register a new truck or pickup to your fleet."
             to="/transporter/fleet/new"
             linkLabel="+ Add Vehicle"
+            linkColor="green"
           />
-          <CtaCard
+          <QuickCard
             icon="📋"
+            iconBg="bg-blue-50"
             title="Incoming Bookings"
-            description="Review and respond to farmer booking requests."
+            desc="Review and respond to farmer booking requests."
             to="/transporter/bookings"
             linkLabel="View Bookings"
+            linkColor="blue"
           />
         </div>
       </div>
@@ -178,22 +197,24 @@ const TransporterDashboard = ({ user }) => {
 };
 
 /* ═══════════════════════════════════
-   Dashboard (role switcher)
+   Dashboard (role switcher) — unchanged
 ═══════════════════════════════════ */
 const Dashboard = () => {
   const { user } = useAuth();
 
   return (
-    <main className="page-container">
+    <>
       {user?.role === 'farmer'      && <FarmerDashboard      user={user} />}
       {user?.role === 'transporter' && <TransporterDashboard user={user} />}
       {!user?.role && (
-        <div className="card text-center py-16 text-gray-400">
-          <p className="text-4xl">🔐</p>
-          <p className="mt-3 text-sm">Loading your dashboard…</p>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 text-center">
+            <p className="text-4xl">🔐</p>
+            <p className="mt-3 text-sm text-gray-400">Loading your dashboard…</p>
+          </div>
         </div>
       )}
-    </main>
+    </>
   );
 };
 

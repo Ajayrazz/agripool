@@ -3,22 +3,22 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../api';
 
-/* ─── Role nav links ─── */
-const FARMER_LINKS      = [
-  { to: '/farmer/requests',    label: '🌾 My Requests'       },
-  { to: '/farmer/bookings',    label: '📦 My Bookings'       },
+/* ─── Role nav links (unchanged) ─── */
+const FARMER_LINKS = [
+  { to: '/farmer/requests',    label: '🌾 My Requests'        },
+  { to: '/farmer/bookings',    label: '📦 My Bookings'        },
 ];
 const TRANSPORTER_LINKS = [
-  { to: '/transporter/fleet',    label: '🚛 My Fleet'        },
-  { to: '/transporter/bookings', label: '📋 Incoming Bookings'},
+  { to: '/transporter/fleet',    label: '🚛 My Fleet'         },
+  { to: '/transporter/bookings', label: '📋 Incoming Bookings' },
 ];
 const ADMIN_LINKS = [
-  { to: '/admin/users',    label: '👥 Users'       },
-  { to: '/admin/bookings', label: '📊 All Bookings' },
+  { to: '/admin/users',    label: '👥 Users'        },
+  { to: '/admin/bookings', label: '📊 All Bookings'  },
 ];
 const roleLinks = { farmer: FARMER_LINKS, transporter: TRANSPORTER_LINKS, admin: ADMIN_LINKS };
 
-/* ─── Time formatter ─── */
+/* ─── Time formatter (unchanged) ─── */
 const timeAgo = (dateStr) => {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
@@ -30,7 +30,7 @@ const timeAgo = (dateStr) => {
 };
 
 /* ═══════════════════════════════════
-   NotificationBell
+   NotificationBell (logic unchanged, visual updated)
 ═══════════════════════════════════ */
 const NotificationBell = () => {
   const [notifications, setNotifications] = useState([]);
@@ -61,7 +61,7 @@ const NotificationBell = () => {
     try {
       const res = await api.get('/notifications');
       const data = res.data.data ?? res.data;
-      setNotifications(data.slice(0, 10)); // show latest 10
+      setNotifications(data.slice(0, 10));
       setUnreadCount(data.filter(n => !n.is_read).length);
     } catch {
       /* silently fail */
@@ -97,7 +97,7 @@ const NotificationBell = () => {
       {/* Bell button */}
       <button
         onClick={handleOpen}
-        className="relative p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
+        className="relative p-2 rounded-lg text-gray-500 hover:text-green-600 hover:bg-green-50 transition-colors"
         aria-label="Notifications"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -153,7 +153,6 @@ const NotificationBell = () => {
                       : 'bg-green-50 hover:bg-green-100'
                   }`}
                 >
-                  {/* Unread dot */}
                   <div className="mt-1 shrink-0">
                     <div className={`w-2 h-2 rounded-full mt-1 ${n.is_read ? 'bg-transparent' : 'bg-green-500'}`} />
                   </div>
@@ -189,7 +188,7 @@ const NotificationBell = () => {
 };
 
 /* ═══════════════════════════════════
-   Navbar
+   Navbar (logic unchanged, visual rebuilt)
 ═══════════════════════════════════ */
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -205,31 +204,31 @@ const Navbar = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
-      <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100 shadow-sm h-16">
+      <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-full">
 
-        {/* Logo */}
+        {/* ── Left: Logo ── */}
         <Link
           to="/"
-          className="flex items-center gap-2 font-bold text-lg text-green-700 shrink-0"
+          className="flex items-center gap-2 shrink-0"
           onClick={() => setMenuOpen(false)}
         >
-          <span className="text-2xl">🌿</span>
-          <span className="hidden sm:inline">AgriPool</span>
+          <span className="text-2xl leading-none">🌿</span>
+          <span className="font-bold text-xl text-green-600 hidden sm:inline">AgriPool</span>
         </Link>
 
-        {/* Desktop nav links */}
-        <nav className="hidden md:flex items-center gap-2">
+        {/* ── Center: Desktop nav links ── */}
+        <nav className="hidden md:flex items-center gap-1">
           {links.map(link => {
             const isActive = location.pathname.startsWith(link.to);
             return (
               <Link
                 key={link.to}
                 to={link.to}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  isActive 
-                    ? 'bg-green-50 text-green-700' 
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                className={`text-sm font-medium px-3 py-2 rounded-lg transition-colors ${
+                  isActive
+                    ? 'bg-green-50 text-green-600'
+                    : 'text-gray-600 hover:text-green-600 hover:bg-green-50'
                 }`}
               >
                 {link.label}
@@ -238,31 +237,36 @@ const Navbar = () => {
           })}
         </nav>
 
-        {/* Desktop: notification bell + user + logout */}
-        <div className="hidden md:flex items-center gap-4 shrink-0">
+        {/* ── Right: Bell + user info + logout (desktop) ── */}
+        <div className="hidden md:flex items-center gap-3 shrink-0">
           <NotificationBell />
 
           {user && (
-            <div className="flex items-center gap-3 border-l border-gray-200 pl-4">
-              <div className="text-right">
-                <p className="text-sm font-semibold text-gray-800 leading-none">{user.name}</p>
-                <p className="text-xs text-green-600 capitalize mt-1">{user.role}</p>
+            <div className="flex items-center gap-2 pl-3 border-l border-gray-100">
+              {/* Avatar initials */}
+              <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-bold text-sm shrink-0">
+                {user.name?.[0]?.toUpperCase()}
+              </div>
+              <div className="text-right leading-tight">
+                <p className="text-sm font-semibold text-gray-800">{user.name}</p>
+                <p className="text-xs text-green-600 capitalize">{user.role}</p>
               </div>
             </div>
           )}
+
           <button
             onClick={handleLogout}
-            className="ml-2 px-4 py-2 text-sm font-semibold text-gray-600 hover:text-red-600 hover:bg-red-50 border border-gray-200 hover:border-red-200 rounded-lg transition-colors"
+            className="ml-1 text-sm px-4 py-1.5 rounded-full border border-gray-200 text-gray-600 hover:border-red-300 hover:text-red-600 transition-all"
           >
             Logout
           </button>
         </div>
 
-        {/* Mobile: bell + hamburger */}
+        {/* ── Mobile: bell + hamburger ── */}
         <div className="md:hidden flex items-center gap-2">
           <NotificationBell />
           <button
-            className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
+            className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
             onClick={() => setMenuOpen(prev => !prev)}
             aria-label="Toggle menu"
           >
@@ -279,9 +283,9 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile drawer */}
+      {/* ── Mobile slide-down drawer ── */}
       {menuOpen && (
-        <div className="md:hidden border-t border-gray-100 bg-white px-4 py-4 flex flex-col gap-1 shadow-lg">
+        <div className="md:hidden bg-white border-t border-gray-100 px-4 py-4 flex flex-col gap-1 shadow-lg animate-[slideDown_0.15s_ease-out]">
           {user && (
             <div className="flex items-center gap-3 pb-3 mb-2 border-b border-gray-100">
               <div className="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-bold text-sm">
@@ -293,6 +297,7 @@ const Navbar = () => {
               </div>
             </div>
           )}
+
           {links.map(link => {
             const isActive = location.pathname.startsWith(link.to);
             return (
@@ -301,15 +306,16 @@ const Navbar = () => {
                 to={link.to}
                 onClick={() => setMenuOpen(false)}
                 className={`px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
-                  isActive 
-                    ? 'bg-green-50 text-green-700' 
-                    : 'text-gray-700 hover:bg-gray-50'
+                  isActive
+                    ? 'bg-green-50 text-green-600'
+                    : 'text-gray-700 hover:bg-gray-50 hover:text-green-600'
                 }`}
               >
                 {link.label}
               </Link>
             );
           })}
+
           <button
             onClick={() => { setMenuOpen(false); handleLogout(); }}
             className="mt-2 px-4 py-3 text-sm font-semibold text-red-600 rounded-xl hover:bg-red-50 text-left transition-colors"

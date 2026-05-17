@@ -36,7 +36,10 @@ import AdminDisputesPage  from './pages/admin/AdminDisputesPage';
 const AppLayout = () => (
   <>
     <Navbar />
-    <ProtectedRoute />
+    {/* pt-16 clears the fixed-height Navbar */}
+    <div className="pt-16">
+      <ProtectedRoute />
+    </div>
   </>
 );
 
